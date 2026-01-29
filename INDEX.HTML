@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Habit Tracker Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #020617, #020617);
+  color: white;
+}
+
+header {
+  text-align: center;
+  padding: 15px;
+}
+
+.overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 15px;
+  padding: 15px;
+}
+
+.ring-card {
+  background: rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 15px;
+  text-align: center;
+}
+
+.ring {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background:
+    conic-gradient(#22d3ee calc(var(--percent)*1%), #1e293b 0%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  position: relative;
+}
+
+.ring::before {
+  content: "";
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  background: #020617;
+  border-radius: 50%;
+}
+
+.ring span {
+  position: relative;
+  font-weight: bold;
+}
+
+.card {
+  background: rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 15px;
+  margin: 15px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td, th {
+  padding: 8px;
+  text-align: center;
+}
+
+.toggle {
+  cursor: pointer;
+}
+
+button, input {
+  padding: 6px;
+  border-radius: 6px;
+  border: none;
+}
+
+@media (max-width: 600px) {
+  table { font-size: 12px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>Habit Tracker</h2>
+</header>
+
+<!-- OVERVIEW -->
+<section class="overview">
+  <div class="ring-card">
+    <div class="ring" id="progressRing"><span id="progressText">0%</span></div>
+    <p>Total Progress</p>
+  </div>
+</section>
+
+<!-- ADD HABIT -->
+<div class="card">
+  <input id="newHabit" placeholder="New Habit">
+  <button onclick="addHabit()">Add Habit</button>
+</div>
+
+<!-- HABIT TABLE -->
+<div class="card">
+  <table id="habitTable">
+    <tr><th>Habit</th><th>Status</th></tr>
+  </table>
+</div>
+
+<!-- CHART -->
+<div class="card">
+  <canvas id="chart"></canvas>
+</div>
+
+<script>
+let habits = JSON.parse(localStorage.getItem("habits")) || [];
+
+function save() {
+  localStorage.setItem("habits", JSON.stringify(habits));
+  updateProgress();
+}
+
+function addHabit() {
+  const name = document.getElementById("newHabit").value;
+  if (!name) return;
+  habits.push({ name, done: false });
+  document.getElementById("newHabit").value = "";
+  save();
+  render();
+}
+
+function toggleHabit(i) {
+  habits[i].done = !habits[i].done;
+  save();
+  render();
+}
+
+function render() {
+  const table = document.getElementById("habitTable");
+  table.innerHTML = "<tr><th>Habit</th><th>Status</th></tr>";
+  habits.forEach((h, i) => {
+    table.innerHTML += `
+      <tr>
+        <td>${h.name}</td>
+        <td class="toggle" onclick="toggleHabit(${i})">${h.done ? "✔" : "✘"}</td>
+      </tr>`;
+  });
+}
+
+function updateProgress() {
+  const done = habits.filter(h => h.done).length;
+  const percent = habits.length ? Math.round(done / habits.length * 100) : 0;
+  document.getElementById("progressText").innerText = percent + "%";
+  document.getElementById("progressRing").style.setProperty("--percent", percent);
+}
+
+render();
+updateProgress();
+
+/* Chart */
+new Chart(document.getElementById("chart"), {
+  type: "line",
+  data: {
+    labels: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+    datasets: [{
+      data: [10,20,30,40,60,80,100],
+      borderColor: "#22d3ee",
+      tension: 0.4
+    }]
+  },
+  options: { plugins: { legend: { display: false }}}
+});
+</script>
+
+</body>
+</html>
