@@ -38,8 +38,12 @@ header {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background:
-    conic-gradient(#22d3ee calc(var(--percent)*1%), #1e293b 0%);
+  background: conic-gradient(
+    #22d3ee 0%,
+    #22d3ee calc(var(--percent) * 1%),
+    #1e293b calc(var(--percent) * 1%),
+    #1e293b 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -80,12 +84,17 @@ td, th {
 
 .toggle {
   cursor: pointer;
+  font-size: 18px;
 }
 
 button, input {
   padding: 6px;
   border-radius: 6px;
   border: none;
+}
+
+canvas {
+  height: 200px !important;
 }
 
 @media (max-width: 600px) {
@@ -103,7 +112,9 @@ button, input {
 <!-- OVERVIEW -->
 <section class="overview">
   <div class="ring-card">
-    <div class="ring" id="progressRing"><span id="progressText">0%</span></div>
+    <div class="ring" id="progressRing" style="--percent:0">
+      <span id="progressText">0%</span>
+    </div>
     <p>Total Progress</p>
   </div>
 </section>
@@ -135,8 +146,9 @@ function save() {
 }
 
 function addHabit() {
-  const name = document.getElementById("newHabit").value;
+  const name = document.getElementById("newHabit").value.trim();
   if (!name) return;
+
   habits.push({ name, done: false });
   document.getElementById("newHabit").value = "";
   save();
@@ -152,18 +164,23 @@ function toggleHabit(i) {
 function render() {
   const table = document.getElementById("habitTable");
   table.innerHTML = "<tr><th>Habit</th><th>Status</th></tr>";
+
   habits.forEach((h, i) => {
     table.innerHTML += `
       <tr>
         <td>${h.name}</td>
-        <td class="toggle" onclick="toggleHabit(${i})">${h.done ? "✔" : "✘"}</td>
-      </tr>`;
+        <td class="toggle" onclick="toggleHabit(${i})">
+          ${h.done ? "✔" : "✘"}
+        </td>
+      </tr>
+    `;
   });
 }
 
 function updateProgress() {
   const done = habits.filter(h => h.done).length;
-  const percent = habits.length ? Math.round(done / habits.length * 100) : 0;
+  const percent = habits.length ? Math.round((done / habits.length) * 100) : 0;
+
   document.getElementById("progressText").innerText = percent + "%";
   document.getElementById("progressRing").style.setProperty("--percent", percent);
 }
@@ -179,10 +196,15 @@ new Chart(document.getElementById("chart"), {
     datasets: [{
       data: [10,20,30,40,60,80,100],
       borderColor: "#22d3ee",
-      tension: 0.4
+      tension: 0.4,
+      fill: false
     }]
   },
-  options: { plugins: { legend: { display: false }}}
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } }
+  }
 });
 </script>
 
